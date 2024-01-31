@@ -1,0 +1,176 @@
+<!-- createoffline.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create Offline</title>
+    <!-- Include any necessary CSS stylesheets -->
+    <link rel="stylesheet" href="../stylesheets/create_offline.css" />
+  </head>
+  <body>
+    <!-- Add a modal container -->
+    <div id="offlineModal" class="modal my-modal">
+      <div class="offlineModal-content">
+        <div class="modal-header">
+          <h2>New sighting</h2>
+          <button class="close-button" onclick="closeModal()">X</button>
+        </div>
+        <form class="offlineForm" id="offlineForm">
+          <div class="mb-3">
+            <label for="offline-description" class="form-label"
+              >Description:</label
+            >
+            <input
+              type="text"
+              id="offline-description"
+              name="description"
+              class="form-control"
+              required
+            />
+          </div>
+
+          <div class="mb-3">
+            <label for="offline-date" class="form-label">Date:</label>
+            <input
+              type="date"
+              id="offline-date"
+              name="date"
+              class="form-control"
+              required
+            />
+          </div>
+
+          <div class="mb-3">
+            <label for="offline-position" class="form-label">Position:</label>
+            <input
+              type="text"
+              id="offline-position"
+              name="bird-name"
+              class="form-control"
+              required
+            />
+          </div>
+
+          <hr />
+
+          <div class="mb-3">
+            <h4>Bird Identification</h4>
+            <!-- <label for="identification" class="form-label"
+              >Identification:</label
+            > -->
+          </div>
+
+          <div class="mb-3">
+            <label for="offline-bird-name" class="form-label">Bird Name:</label>
+            <input
+              type="text"
+              id="offline-bird-name"
+              name="bird-name"
+              class="form-control"
+              required
+            />
+          </div>
+
+          <div class="mb-3">
+            <label for="offline-bird-description" class="form-label"
+              >Bird Description:</label
+            >
+            <textarea
+              id="offline-bird-description"
+              name="bird-description"
+              class="form-control"
+              required
+            ></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label for="offline-image" class="form-label">Image:</label>
+            <input
+              type="file"
+              id="offline-image"
+              name="image"
+              class="form-control"
+            />
+          </div>
+
+          <button type="submit" class="btn btn-primary header-button">
+            Create
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div id="loadingOverlay">
+      <div class="spinner"></div>
+      <div class="loadingText">Sighting created successfully.</div>
+    </div>
+
+    <script src="../public/javascripts/idb.js" type="module"></script>
+    <script type="module">
+      import { setSighting } from "../public/javascripts/idb.js";
+
+      // Add event listener to the offline form submit event
+      var offlineForm = document.getElementById("offlineForm");
+      offlineForm.addEventListener("submit", handleOfflineSubmit);
+
+      window.closeModal = function () {
+        var modal = document.getElementById("offlineModal");
+        modal.style.display = "none";
+      };
+
+      const username = sessionStorage.getItem("username");
+      // Function to handle the offline form submit event
+      async function handleOfflineSubmit(event) {
+        console.log("enter save sighting");
+        // event.preventDefault();
+        event.preventDefault(); // Prevent form from submitting normally
+
+        const data = {
+          description: sanitiseText(
+            document.getElementById("offline-description").value
+          ),
+          date: document.getElementById("offline-date").value,
+          position: sanitiseText(
+            document.getElementById("offline-position").value
+          ),
+          author: username,
+          birdName: sanitiseText(
+            document.getElementById("offline-bird-name").value
+          ),
+          birdDescription: sanitiseText(
+            document.getElementById("offline-bird-description").value
+          ),
+          image: document.getElementById("offline-image").files[0],
+          _id: "1",
+        };
+
+        await setSighting(data)
+          .then(() => {
+            alert("Sighting created successfully in indexedDB!");
+          })
+          .catch((error) => {
+            alert("Error creating sighting");
+          });
+
+        closeModal();
+
+        var loadingOverlay = document.getElementById("loadingOverlay");
+        loadingOverlay.style.display = "flex";
+
+        // Hide the loading overlay after a specific duration
+        setTimeout(function () {
+          loadingOverlay.style.display = "none";
+          window.location.href = "/page/details_offline.html";
+        }, 500);
+      }
+    </script>
+
+    <script>
+      // To avoid uncaught syntax error for JSON.stringify
+      function sanitiseText(text) {
+        return text.replace(/['"]/g, "").trim();
+      }
+    </script>
+  </body>
+</html>

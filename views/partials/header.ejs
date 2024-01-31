@@ -1,0 +1,129 @@
+<link rel="stylesheet" href="../../public/stylesheets/header.css" />
+<%- include('head') %>
+
+<header>
+  <div class="offline-included">
+    <div class="offline-bar">
+      You are offline. Please click the title to go to the offline page
+    </div>
+    <div class="header-content">
+      <div class="title">
+        <h1 id="title">Bird Sighting</h1>
+      </div>
+      <div class="nav">
+        <button id="addSightingButton" class="btn btn-primary header-button">
+          <i class="fa fa-plus-circle"></i> Add New Sighting
+        </button>
+      </div>
+    </div>
+    <div id="alertBox" class="alert" style="display: none">
+      <span id="closeAlertBoxBtn" class="closebtn">&times;</span>
+      There is an offline sighting not synced. Please sync first.
+    </div>
+  </div>
+
+  <!-- Add a modal container -->
+  <%- include('../../public/page/create_offline.html') %>
+</header>
+
+<!-- Import idb.js using script tag -->
+<script src="../../public/javascripts/idb.js" type="module"></script>
+
+<script type="module">
+  import { getSighting } from "../../public/javascripts/idb.js";
+
+  document.addEventListener("DOMContentLoaded", function () {
+    // Function for showing alert box
+    function showAlertBox() {
+      var alertBox = document.getElementById("alertBox");
+      alertBox.style.display = "block";
+    }
+
+    // Handle closeAlert button clicked
+    const closeAlertBoxBtn = document.getElementById("closeAlertBoxBtn");
+    closeAlertBoxBtn.addEventListener("click", function () {
+      // Close the alert box
+      var alertBox = document.getElementById("alertBox");
+      alertBox.style.display = "none";
+    });
+
+    // Handle addSigting button clicked
+    const addSightingButton = document.getElementById("addSightingButton");
+    addSightingButton.addEventListener("click", function () {
+      // Check if there is a sighting with ID 1 in IndexedDB
+      getSighting("1").then((sighting) => {
+        if (sighting) {
+          // console.log("There is one offline sighting");
+          // If a sighting with ID 1 exists, display an alert to the user
+          // alert("There is an offline sighting not synced. Please sync first.");
+          showAlertBox();
+        } else {
+          // console.log("No offline sighting");
+          if (!navigator.onLine) {
+            // If the browser is offline, display the offline modal window
+            var offlineModal = document.getElementById("offlineModal");
+            offlineModal.style.display = "block";
+          } else {
+            // If the browser is online, redirect to the "/create" page
+            window.location.href = "/create";
+          }
+        }
+      });
+    });
+  });
+</script>
+
+<script>
+  const titleElement = document.getElementById("title");
+
+  // Add the click event listener to the h1 element
+  titleElement.addEventListener("click", () => {
+    if (!navigator.onLine) {
+      window.location.href = "/page/index_offline.html";
+    } else {
+      window.location.href = "/";
+    }
+  });
+
+  // // Function to handle the button click event
+  // function handleButtonClick() {
+  //   if (!navigator.onLine) {
+  //     // If the browser is offline, display the offline modal window
+  //     var offlineModal = document.getElementById("offlineModal");
+  //     offlineModal.style.display = "block";
+  //   } else {
+  //     // If the browser is online, redirect to the "/create" page
+  //     window.location.href = "/create";
+  //   }
+  // }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    // Get the offline bar element
+    const offlineBar = document.querySelector(".offline-bar");
+    /**
+     * When the client gets off-line, it shows an off line warning to the user
+     * so that it is clear that the data is stale
+     */
+    window.addEventListener(
+      "offline",
+      function (e) {
+        // Show the offline bar when offline event is triggered
+        offlineBar.style.display = "block";
+        // Queue up events for server.
+        console.log("You are offline");
+      },
+      false
+    );
+
+    window.addEventListener(
+      "online",
+      async function (e) {
+        // Hide the offline bar when online event is triggered
+        offlineBar.style.display = "none";
+        // Resync data with the server.
+        console.log("You are online");
+      },
+      false
+    );
+  });
+</script>

@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Bird Sighting</title>
+    <%- include('partials/head') %>
+
+    <script src="../public/javascripts/idb.js" type="module"></script>
+    <script src="../public/javascripts/index.js" type="module"></script>
+    <script src="../public/javascripts/disableButtons.js"></script>
+
+    <link rel="stylesheet" href="../public/stylesheets/style.css" />
+    <%- include('partials/header') %>
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="table-responsive">
+        <!-- <div id="pagination-buttons">
+          <button onclick="showPage(currentPage - 1)" class="page-btn">
+            Prev
+          </button>
+          <button onclick="showPage(currentPage + 1)" class="page-btn">
+            Next
+          </button>
+        </div> -->
+
+        <table class="table" id="table-view">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Identification</th>
+              <th>Spotted Location</th>
+              <th
+                class="headClickable"
+                onclick="toggle_Distance(3)"
+                style="
+                  background-color: #dcdcdc;
+                  box-shadow: 0 2px 4px rgba(0.2, 0, 0, 0.2);
+                "
+              >
+                Distance
+              </th>
+              <th
+                class="headClickable"
+                onclick="toggle_Date()"
+                style="
+                  background-color: #dcdcdc;
+                  box-shadow: 0 2px 4px rgba(0.2, 0, 0, 0.2);
+                "
+              >
+                Date
+              </th>
+              <th></th>
+            </tr>
+          </thead>
+
+          <tbody id="table-body-date">
+            <% sightings.forEach(function(sighting) { %>
+            <tr data-id="<%= sighting._id %>">
+              <td><%= sighting.author %></td>
+              <td><%= sighting.identification.birdName %></td>
+              <td><%= sighting.position %></td>
+              <td><%= sighting.distance %></td>
+              <td><%= sighting.date %></td>
+
+              <td>
+                <div class="button-group">
+                  <button
+                    id="details-btn"
+                    class="btn btn-outline-success"
+                    data-id="<%= sighting._id %>"
+                    data-sighting="<%= JSON.stringify(sighting) %>"
+                  >
+                    Details
+                  </button>
+
+                  <form action="/delete" method="post">
+                    <input
+                      type="hidden"
+                      name="id"
+                      value="<%= sighting._id %>"
+                    />
+                    <button
+                      id="delete-btn"
+                      type="submit"
+                      class="btn btn-outline-danger"
+                      data-id="<%= sighting._id %>"
+                      data-sighting="<%= JSON.stringify(sighting) %>"
+                    >
+                      Delete
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            <% }); %>
+          </tbody>
+
+          <tbody id="table-body-distance" style="display: none">
+            <% sightings.forEach(function(sighting) { %>
+            <tr
+              data-id="<%= sighting._id %>"
+              data-sighting="<%= JSON.stringify(sighting) %>"
+            >
+              <td><%= sighting.author %></td>
+              <td><%= sighting.identification.birdName %></td>
+              <td><%= sighting.position %></td>
+              <td><%= sighting.distance %></td>
+              <td><%= sighting.date %></td>
+              <td>
+                <div class="button-group">
+                  <button
+                    id="details-btn"
+                    class="btn btn-outline-success"
+                    onclick="location.href='/details?id=<%= sighting._id %>'"
+                  >
+                    Details
+                  </button>
+
+                  <form action="/delete" method="post">
+                    <input
+                      type="hidden"
+                      name="id"
+                      value="<%= sighting._id %>"
+                    />
+                    <button
+                      type="submit"
+                      class="btn btn-outline-danger"
+                      onclick="deleteSighting(event,'<%= sighting._id %>','<%= sighting.author %>')"
+                    >
+                      Delete
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="grid-view" class="row" style="display: none">
+        <% sightings.forEach(function(sighting) { %>
+        <div class="col-sm-4 col-md-3 mb-3">
+          <div
+            class="card"
+            data-id="<%= sighting._id %>"
+            data-sighting="<%= JSON.stringify(sighting) %>"
+          >
+            <img
+              class="card-img-top"
+              src="<%= sighting.image %>"
+              alt="Bird image"
+            />
+            <div class="card-body">
+              <h5 class="card-title">
+                <%= sighting.identification.birdName %>
+              </h5>
+              <p class="card-text">
+                <strong>Date:</strong> <%= sighting.date %>
+              </p>
+              <p class="card-text">
+                <strong>User:</strong> <%= sighting.author %>
+              </p>
+            </div>
+          </div>
+        </div>
+        <% }); %>
+      </div>
+
+      <div class="toggle-button mb-3">
+        <button class="btn btn-light" onclick="toggleGrid(0)">
+          <i class="fa fa-exchange"></i>
+          <span id="toggle-text">To Grid View</span>
+        </button>
+      </div>
+    </div>
+
+    <div id="loading-animation" class="sync-spinner">
+      <div class="spinner-border text-success" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p>Hang tight, we're syncing your data!</p>
+    </div>
+
+    <script>
+      // Disable all buttons except add new sighting button when offline
+      window.addEventListener("offline", () => {
+        disableButtons();
+      });
+
+      window.addEventListener("online", () => {
+        enableButtons();
+      });
+    </script>
+  </body>
+
+  <script>
+    // Switch the table view to a view sorted by date.
+    function toggle_Date() {
+      var table1 = document.getElementById("table-body-date");
+      var table2 = document.getElementById("table-body-distance");
+      if (table1.style.display === "none") {
+        table1.style.display = "table-row-group";
+        table2.style.display = "none";
+      }
+      showPage(1);
+    }
+
+    // Switch the table view to a view sorted by distance.
+    function toggle_Distance(n) {
+      var table1 = document.getElementById("table-body-date");
+      var table2 = document.getElementById("table-body-distance");
+      if (table2.style.display === "none") {
+        table1.style.display = "none";
+        table2.style.display = "table-row-group";
+      }
+      sortTable(n);
+    }
+
+    //page divided
+    const table_distance = document.getElementById("table-body-distance");
+    const table_date = document.getElementById("table-body-date");
+    let currentPage = 1;
+    const rowsPerPage = 5;
+
+    function showPage(page) {
+      let table = null;
+      if (table_distance.display === "none") {
+        table = table_date;
+      } else {
+        table = table_distance;
+      }
+
+      currentPage = page; // update current page number
+      const startIndex = (page - 1) * rowsPerPage;
+      const endIndex = startIndex + rowsPerPage;
+      const rows_distance = Array.from(table_distance.rows).slice(0); // Get all rows except the header
+      const rows_date = Array.from(table_date.rows).slice(0); // Get all rows except the header
+      const numRows = table.rows.length; // Get the total number of rows, minus the header
+      const numPages = Math.ceil(numRows / rowsPerPage); // Calculate the total number of pages
+      if (currentPage <= numPages && currentPage > 0) {
+        rows_distance.forEach((row) => (row.style.display = "none")); // hide all rows
+        rows_date.forEach((row) => (row.style.display = "none"));
+        rows_distance
+          .slice(startIndex, endIndex)
+          .forEach((row) => (row.style.display = "")); // Display the rows of the specified page
+        rows_date
+          .slice(startIndex, endIndex)
+          .forEach((row) => (row.style.display = ""));
+      } else if (currentPage === 0) {
+        alert("no more");
+        currentPage++;
+      } else {
+        alert("no more");
+        currentPage--;
+      }
+    }
+
+    // Create new page
+    // function createPagination(table) {
+    //   const numRows = table.rows.length; // Get the total number of rows, minus the header
+    //   const numPages = Math.ceil(numRows / rowsPerPage); // Calculate the total number of pages
+    //   const pagination = document.createElement("div");
+    //   pagination.classList.add("pagination"); // Add CSS styles to beautify the pagination bar
+    //   for (let i = 1; i <= numPages; i++) {
+    //     const link = document.createElement("a");
+    //     link.href = "#";
+    //     link.textContent = i;
+    //     if (i === currentPage) {
+    //       link.classList.add("active"); // Add CSS styles to identify the current page number
+    //     }
+
+    //     link.addEventListener("click", (event) => {
+    //       event.preventDefault();
+    //       showPage(i);
+    //       pagination
+    //         .querySelectorAll("a")
+    //         .forEach((a) => a.classList.remove("active"));
+    //       link.classList.add("active");
+    //     });
+    //     pagination.appendChild(link);
+    //   }
+    //   document.body.appendChild(pagination); // Add a pagination to the page
+    // }
+
+    // Create new pages
+    function createPagination(table) {
+      const numRows = table.rows.length; // Get the total number of rows, minus the header
+      const numPages = Math.ceil(numRows / rowsPerPage); // Calculate the total number of pages
+
+      const pagination = document.createElement("nav");
+      pagination.setAttribute("aria-label", "Page navigation");
+
+      const ul = document.createElement("ul");
+      ul.classList.add("pagination", "custom-pagination");
+
+      for (let i = 1; i <= numPages; i++) {
+        const li = document.createElement("li");
+        li.classList.add("page-item");
+
+        const link = document.createElement("a");
+        link.href = "#";
+        link.textContent = i;
+        link.classList.add("page-link");
+
+        if (i === currentPage) {
+          li.classList.add("active");
+        }
+
+        // Change display for current pagination
+        link.addEventListener("click", (event) => {
+          event.preventDefault();
+          showPage(i);
+          const activeLinks = pagination.querySelectorAll("li.page-item");
+          activeLinks.forEach((li) => li.classList.remove("active"));
+          li.classList.add("active");
+        });
+        li.appendChild(link);
+        ul.appendChild(li);
+      }
+
+      pagination.appendChild(ul);
+      document.body.appendChild(pagination); // Add a pagination bar to the page
+    }
+
+    window.addEventListener("load", () => {
+      showPage(1);
+      createPagination(table_distance);
+    });
+
+    //sort by distance
+    function sortTable(n) {
+      var table,
+        rows,
+        switching,
+        i,
+        x,
+        y,
+        shouldSwitch,
+        dir,
+        switchcount = 0;
+      table = document.getElementById("table-body-distance");
+      switching = true;
+      dir = "asc"; // Set the sorting direction to ascending
+      while (switching) {
+        switching = false;
+        rows = table.rows;
+        for (i = 0; i < rows.length - 1; i++) {
+          shouldSwitch = false;
+          x = rows[i].getElementsByTagName("TD")[n];
+          y = rows[i + 1].getElementsByTagName("TD")[n];
+
+          var xValue = x.innerHTML.trim();
+          var yValue = y.innerHTML.trim();
+          if (xValue !== "unknown" && yValue !== "unknown") {
+            if (dir === "asc") {
+              if (parseFloat(xValue) > parseFloat(yValue)) {
+                shouldSwitch = true;
+                break;
+              }
+            } else if (dir === "desc") {
+              if (parseFloat(xValue) < parseFloat(yValue)) {
+                shouldSwitch = true;
+                break;
+              }
+            }
+          } else if (xValue === "unknown" && yValue !== "unknown") {
+            shouldSwitch = true;
+            break;
+          }
+        }
+        if (shouldSwitch) {
+          rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+          switching = true;
+          switchcount++;
+        } else {
+          if (switchcount == 0 && dir == "asc") {
+            dir = "desc";
+            switching = true;
+          }
+        }
+      }
+      showPage(1);
+    }
+
+    //toggle the present form
+    var currentView = 0;
+    var views = ["table-view", "grid-view"];
+    var toggleText = document.querySelector("span");
+
+    // Switch between list view and grid view.
+    function toggleGrid(n) {
+      sortTable(n);
+      var viewToHide = views[currentView];
+      currentView = (currentView + 1) % views.length;
+      var viewToShow = views[currentView];
+
+      var viewToHideElement = document.getElementById(viewToHide);
+      var viewToShowElement = document.getElementById(viewToShow);
+
+      viewToHideElement.style.display = "none";
+      viewToShowElement.style.display = "";
+
+      if (currentView == 0) {
+        toggleText.innerHTML = "To Grid View";
+      } else if (currentView == 1) {
+        toggleText.innerHTML = "To List View";
+      }
+    }
+  </script>
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Create a new Sighting</title>
+    <%- include('partials/head') %>
+    <link rel="stylesheet" href=".././stylesheets/create.css" />
+    <%- include('partials/header') %>
+    <script src="../public/javascripts/create.js"></script>
+    <script src="../public/javascripts/disableButtons.js"></script>
+
+    <!--    get current location-->
+    <script
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA3zXfnVpTkl7MMXYScQFqwUY3Pvm9fP5w&callback=initMap&language=en"
+      async
+      defer
+    ></script>
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="title-container">
+        <h1 class="page-title">Create a new Sighting</h1>
+      </div>
+      <form class="sighting-form" id="sighting-form">
+        <div class="mb-3">
+          <label for="description" class="form-label">Description:</label>
+          <input
+            type="text"
+            id="description"
+            name="description"
+            class="form-control"
+            required
+          />
+        </div>
+
+        <div class="mb-3">
+          <label for="date" class="form-label">Date:</label>
+          <input
+            type="date"
+            id="date"
+            name="date"
+            class="form-control"
+            required
+          />
+        </div>
+
+        <div class="mb-3">
+          <label for="location" class="form-label">Location:</label>
+          <input
+            type="text"
+            placeholder="Please select from the map"
+            id="location"
+            name="location"
+            class="form-control"
+            required
+            disabled
+          />
+        </div>
+
+        <div class="mb-3">
+          <label for="position" class="form-label">Position:</label>
+          <input
+            type="text"
+            id="position"
+            name="position"
+            class="form-control"
+            required
+            disabled
+          />
+        </div>
+
+        <div style="display: none" class="mb-3">
+          <label for="distance" class="form-label">Distance:</label>
+          <input
+            type="text"
+            id="distance"
+            name="distance"
+            class="form-control"
+            required
+            disabled
+          />
+        </div>
+
+        <div class="mb-3">
+          <div id="map"></div>
+        </div>
+        <hr />
+
+        <div class="mb-3">
+          <!-- <label for="identification" class="form-label">Identification:</label> -->
+          <h4>Bird Identification</h4>
+        </div>
+
+        <div class="mb-3">
+          <label for="bird-name" class="form-label">Bird Name:</label>
+          <input
+            type="text"
+            id="bird-name"
+            name="bird-name"
+            class="form-control"
+            required
+          />
+        </div>
+
+        <div class="mb-3">
+          <label for="bird-description" class="form-label"
+            >Bird Description:</label
+          >
+          <textarea
+            id="bird-description"
+            name="bird-description"
+            class="form-control"
+            required
+          ></textarea>
+        </div>
+
+        <div class="mb-3" style="display: none">
+          <label for="url" class="form-label">URL:</label>
+          <input type="text" id="url" name="url" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+          <label for="image" class="form-label">Image:</label>
+          <input type="file" id="image" name="image" class="form-control" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Create</button>
+      </form>
+    </div>
+
+    <div id="loadingOverlay">
+      <div class="spinner"></div>
+      <div class="loadingText">Sighting created successfully.</div>
+    </div>
+  </body>
+
+  <!-- Submit the form -->
+  <script>
+    const username = sessionStorage.getItem("username");
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const form = document.getElementById("sighting-form");
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault(); // Prevent form from submitting normally
+        const data = {
+          // sanitiseText function is from create.js
+          description: sanitiseText(
+            document.getElementById("description").value
+          ),
+          date: document.getElementById("date").value,
+          author: username,
+          location: document.getElementById("location").value,
+          position: document.getElementById("position").value,
+          distance: document.getElementById("distance").value,
+          birdName: sanitiseText(document.getElementById("bird-name").value),
+          birdDescription: sanitiseText(
+            document.getElementById("bird-description").value
+          ),
+          url: sanitiseText(document.getElementById("url").value),
+          image: document.getElementById("image").files[0],
+        };
+
+        const formData = new FormData();
+        for (const key in data) {
+          formData.append(key, data[key]);
+        }
+
+        const response = await fetch("/add", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (response.ok) {
+          // const responseData = await response.json(); // Parse the response as JSON
+          // const { id } = responseData; // Assuming the server sends the generated ID in the response
+
+          // alert("Sighting created successfully!");
+          form.reset();
+
+          var loadingOverlay = document.getElementById("loadingOverlay");
+          loadingOverlay.style.display = "flex";
+
+          // Hide the loading overlay after a specific duration
+          setTimeout(function () {
+            loadingOverlay.style.display = "none";
+            window.location.href = "/";
+          }, 500);
+        } else {
+          alert("Error creating sighting");
+        }
+      });
+    });
+  </script>
+
+  <script>
+    // Disable buttons or perform other actions related to offline status.
+    window.addEventListener("offline", () => {
+      disableButtons();
+    });
+    // Enable buttons or perform other actions related to online status.
+    window.addEventListener("online", () => {
+      enableButtons();
+    });
+  </script>
+</html>
