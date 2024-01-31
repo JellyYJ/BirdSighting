@@ -3,7 +3,7 @@
 # 1 Installation
 
 ```
-To run the Bird Watching website, you need to follow the steps below:
+To run the birdSighting website, you need to followings steps:
 ```
 
 1.Make sure the directory is /birdSighting if not run: cd birdSighting
@@ -14,6 +14,6 @@ To run the Bird Watching website, you need to follow the steps below:
 
 4.Open the website in your browser at: http://localhost:3000
 
-# 2 other
+# 2 Other
 
 github repository: https://github.com/JellyYJ/BirdSighting
