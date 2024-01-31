@@ -226,7 +226,7 @@
 
     function showPage(page) {
       let table = null;
-      if (table_distance.display === "none") {
+      if (table_distance.style.display === "none") {
         table = table_date;
       } else {
         table = table_distance;
@@ -256,33 +256,6 @@
         currentPage--;
       }
     }
-
-    // Create new page
-    // function createPagination(table) {
-    //   const numRows = table.rows.length; // Get the total number of rows, minus the header
-    //   const numPages = Math.ceil(numRows / rowsPerPage); // Calculate the total number of pages
-    //   const pagination = document.createElement("div");
-    //   pagination.classList.add("pagination"); // Add CSS styles to beautify the pagination bar
-    //   for (let i = 1; i <= numPages; i++) {
-    //     const link = document.createElement("a");
-    //     link.href = "#";
-    //     link.textContent = i;
-    //     if (i === currentPage) {
-    //       link.classList.add("active"); // Add CSS styles to identify the current page number
-    //     }
-
-    //     link.addEventListener("click", (event) => {
-    //       event.preventDefault();
-    //       showPage(i);
-    //       pagination
-    //         .querySelectorAll("a")
-    //         .forEach((a) => a.classList.remove("active"));
-    //       link.classList.add("active");
-    //     });
-    //     pagination.appendChild(link);
-    //   }
-    //   document.body.appendChild(pagination); // Add a pagination to the page
-    // }
 
     // Create new pages
     function createPagination(table) {
@@ -387,10 +360,12 @@
     //toggle the present form
     var currentView = 0;
     var views = ["table-view", "grid-view"];
-    var toggleText = document.querySelector("span");
+    // var toggleText = document.querySelector("span");
+    var toggleText = document.getElementById("toggle-text"); // fix text not toggle error
 
     // Switch between list view and grid view.
     function toggleGrid(n) {
+      console.log("Toggling grid view");
       sortTable(n);
       var viewToHide = views[currentView];
       currentView = (currentView + 1) % views.length;
