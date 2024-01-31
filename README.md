@@ -3,7 +3,7 @@
 # 1 Installation
 
 ```
-To run the birdSighting website, you need to followings steps:
+Steps to run the application locally:
 ```
 
 1.Make sure the directory is /birdSighting if not run: cd birdSighting
