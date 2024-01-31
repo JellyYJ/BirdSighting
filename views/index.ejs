@@ -365,7 +365,6 @@
 
     // Switch between list view and grid view.
     function toggleGrid(n) {
-      console.log("Toggling grid view");
       sortTable(n);
       var viewToHide = views[currentView];
       currentView = (currentView + 1) % views.length;
